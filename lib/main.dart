@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:restaurant_review/review_page.dart';
 import 'package:restaurant_review/sql_helper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -37,13 +40,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> _reviews = [];
 
-  bool _isLoading = true;
-
   void _refreshReviews() async {
     final data = await SQLHelper.getItems();
     setState(() {
       _reviews = data;
-      _isLoading = false;
     });
   }
 
@@ -56,11 +56,34 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  File? image;
+  String imagePath = '';
+
+  Future pickImage() async {
+    try {
+      final XFile? image =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        imagePath = image.path;
+        print(imagePath);
+      }
+
+      if (image == null) return;
+
+      final imageTemp = File(image.path);
+
+      setState(() {
+        this.image = imageTemp;
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+  }
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _restaurantController = TextEditingController();
   final TextEditingController _ratingController = TextEditingController();
   final TextEditingController _reviewController = TextEditingController();
-  final TextEditingController _imageController = TextEditingController();
 
   Future<void> _updateItem(int id) async {
     await SQLHelper.updateItem(
@@ -68,13 +91,14 @@ class _MyHomePageState extends State<MyHomePage> {
         _nameController.text,
         _restaurantController.text,
         _ratingController.text,
-        _reviewController.text);
+        _reviewController.text,
+        imagePath);
     _refreshReviews();
   }
 
   Future<void> _addItem() async {
     await SQLHelper.createItem(_nameController.text, _restaurantController.text,
-        _ratingController.text, _reviewController.text);
+        _ratingController.text, _reviewController.text, imagePath);
     _refreshReviews();
     if (kDebugMode) {
       print('.. number of items ${_reviews.length}');
@@ -124,7 +148,6 @@ class _MyHomePageState extends State<MyHomePage> {
       _ratingController.text = '';
       _reviewController.text = '';
     }
-    PickedFile? _imageFile;
 
     showModalBottomSheet(
         context: context,
@@ -236,12 +259,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   const SizedBox(
                     height: 20,
                   ),
-                  // ElevatedButton(
-                  //   onPressed: () async {
-                  //
-                  //   },
-                  //   child: Text('Pick Image'),
-                  // ),
+                  ElevatedButton(
+                    onPressed: () {
+                      pickImage();
+                    },
+                    child: const Text('Pick Image'),
+                  ),
                   ElevatedButton(
                     onPressed: () async {
                       if (_nameController.text == '' ||
@@ -437,8 +460,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: ListTile(
                       title: Text(
                         _reviews[index]['restaurant_name'],
-                        style:
-                            const TextStyle(fontWeight: FontWeight.bold,fontSize: 20, color: Colors.black),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.black),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,7 +474,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 'Rating: ',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 15, color: Colors.black),
+                                    fontSize: 15,
+                                    color: Colors.black),
                               ),
                               starIcon(_reviews[index]['rating']),
                             ],
@@ -460,7 +486,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 'Name: ',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 15, color: Colors.black),
+                                    fontSize: 15,
+                                    color: Colors.black),
                               ),
                               Text(
                                 _reviews[index]['user_name'],
@@ -474,16 +501,22 @@ class _MyHomePageState extends State<MyHomePage> {
                             'Review: ',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15, color: Colors.black),
+                                fontSize: 15,
+                                color: Colors.black),
                           ),
                           Row(
                             children: [
-
-                              Expanded(child: Text(
-                                _reviews[index]['review'],
-                                style: const TextStyle(
-                                    fontSize: 15, color: Colors.black),
-                              ),),
+                              Expanded(
+                                child: Text(
+                                  _reviews[index]['review'],
+                                  style: const TextStyle(
+                                      fontSize: 15, color: Colors.black),
+                                ),
+                              ),
+                              Expanded(
+                                child:
+                                  Image.file(File(_reviews[index]['image'])),
+                              ),
                             ],
                           ),
                         ],
@@ -516,7 +549,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   reviewRating: _reviews[index]['rating'],
                                   reviewReviewerName: _reviews[index]
                                       ['user_name'],
-                                  reviewReview: _reviews[index]['review'])));
+                                  reviewReview: _reviews[index]['review'], reviewImage: _reviews[index]['image'])));
                     },
                   )),
             ),

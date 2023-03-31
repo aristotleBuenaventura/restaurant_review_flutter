@@ -13,7 +13,7 @@ class SQLHelper {
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )""");
   }
- 
+
   static Future<sql.Database> db() async {
     return sql.openDatabase('restaurant.db', version: 1,
         onCreate: (sql.Database database, int version) async {
@@ -25,14 +25,15 @@ class SQLHelper {
   }
 
   static Future<int> createItem(String userName, String restaurantName,
-      String rating, String? review) async {
+      String rating, String? review, String image) async {
     final db = await SQLHelper.db();
 
     final data = {
       'user_name': userName,
       'restaurant_name': restaurantName,
       'rating': rating,
-      'review': review
+      'review': review,
+      'image': image,
     };
     final id = await db.insert('items', data,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
@@ -49,8 +50,8 @@ class SQLHelper {
     return db.query('items', where: 'id= ?', whereArgs: [id], limit: 1);
   }
 
-  static Future<int> updateItem(int id, String userName,
-      String restaurantName, String rating, String? review) async {
+  static Future<int> updateItem(int id, String userName, String restaurantName,
+      String rating, String? review, String image) async {
     final db = await SQLHelper.db();
 
     final data = {
@@ -58,7 +59,8 @@ class SQLHelper {
       'restaurant_name': restaurantName,
       'rating': rating,
       'review': review,
-      'createdAt': DateTime.now().toString()
+      'image': image,
+      'createdAt': DateTime.now().toString(),
     };
 
     final result =

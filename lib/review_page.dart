@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,12 +9,14 @@ class Review_Page extends StatefulWidget {
   final String reviewRating;
   final String reviewReviewerName;
   final String reviewReview;
+  final String reviewImage;
   const Review_Page(
       {Key? key,
       required this.reviewName,
       required this.reviewRating,
       required this.reviewReviewerName,
-      required this.reviewReview})
+      required this.reviewReview,
+      required this.reviewImage})
       : super(key: key);
 
   @override
@@ -91,12 +95,14 @@ class _review_page extends State<Review_Page> {
           Expanded(
             child: Card(
                 color: Colors.white,
-                margin: const EdgeInsets.fromLTRB(25, 25, 25, 50),
+                margin: const EdgeInsets.fromLTRB(25, 25, 25, 25),
                 child: Column(
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Image(image: AssetImage('assets/food.jpg')),
+                    Expanded(
+                      child:
+                      Image.file(File(widget.reviewImage),
+                        width: 250,
+                      ),
                     ),
                     ListTile(
                       title: Padding(
