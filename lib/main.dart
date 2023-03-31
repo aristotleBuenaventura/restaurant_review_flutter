@@ -142,11 +142,13 @@ class _MyHomePageState extends State<MyHomePage> {
       _restaurantController.text = existingReview['restaurant_name'];
       _ratingController.text = existingReview['rating'];
       _reviewController.text = existingReview['review'];
+      imagePath = existingReview['image'];
     } else {
       _nameController.text = '';
       _restaurantController.text = '';
       _ratingController.text = '';
       _reviewController.text = '';
+      imagePath = '';
     }
 
     showModalBottomSheet(
@@ -270,7 +272,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       if (_nameController.text == '' ||
                           _restaurantController.text == '' ||
                           _ratingController.text == '' ||
-                          _reviewController.text == '') {
+                          _reviewController.text == ''||
+                          imagePath == '') {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
@@ -300,6 +303,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       _restaurantController.text = '';
                       _ratingController.text = '';
                       _reviewController.text = '';
+                      imagePath = '';
                       Navigator.of(context).pop();
                     },
                     style: ButtonStyle(
@@ -458,86 +462,100 @@ class _MyHomePageState extends State<MyHomePage> {
                     style:
                         ElevatedButton.styleFrom(backgroundColor: Colors.white),
                     child: ListTile(
-                      title: Text(
-                        _reviews[index]['restaurant_name'],
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            color: Colors.black),
-                      ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              const Text(
-                                'Rating: ',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Colors.black),
+                              Image.file(
+                                File(_reviews[index]['image']),
+                                height: 100,
+                                width: 100,
                               ),
-                              starIcon(_reviews[index]['rating']),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Text(
-                                'Name: ',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Colors.black),
-                              ),
-                              Text(
-                                _reviews[index]['user_name'],
-                                style: const TextStyle(
-                                    fontSize: 15, color: Colors.black),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Review: ',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: Colors.black),
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _reviews[index]['review'],
-                                  style: const TextStyle(
-                                      fontSize: 15, color: Colors.black),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                                child: Row(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _reviews[index]['restaurant_name'],
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                              color: Colors.black),
+                                        ),
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'Rating: ',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                  color: Colors.black),
+                                            ),
+                                            starIcon(_reviews[index]['rating']),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'Name: ',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                  color: Colors.black),
+                                            ),
+                                            Text(
+                                              _reviews[index]['user_name'],
+                                              style: const TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.black),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Expanded(
-                                child:
-                                  Image.file(File(_reviews[index]['image'])),
-                              ),
                             ],
+                          ),
+                          Center(
+                            child: Padding(
+                                padding: const EdgeInsets.fromLTRB(80, 0, 80, 0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () => _showForm(_reviews[index]['id']),
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            Colors.black),
+                                      ),
+                                      child: const Text(
+                                          'Edit'), // the text displayed on the button
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () =>
+                                          _deleteItem(_reviews[index]['id']),
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            Colors.black),
+                                      ),
+                                      child: const Text(
+                                          'Delete'), // the text displayed on the button
+                                    ),
+                                  ],
+                                )),
                           ),
                         ],
                       ),
-                      trailing: SizedBox(
-                        width: 100,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.black),
-                              onPressed: () => _showForm(_reviews[index]['id']),
-                            ),
-                            IconButton(
-                              icon:
-                                  const Icon(Icons.delete, color: Colors.black),
-                              onPressed: () =>
-                                  _deleteItem(_reviews[index]['id']),
-                            ),
-                          ],
-                        ),
-                      ),
+
                     ),
                     onPressed: () {
                       Navigator.push(
@@ -549,7 +567,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                   reviewRating: _reviews[index]['rating'],
                                   reviewReviewerName: _reviews[index]
                                       ['user_name'],
-                                  reviewReview: _reviews[index]['review'], reviewImage: _reviews[index]['image'])));
+                                  reviewReview: _reviews[index]['review'],
+                                  reviewImage: _reviews[index]['image'])));
                     },
                   )),
             ),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:restaurant_review/sql_helper.dart';
 
 class Review_Page extends StatefulWidget {
   final String reviewName;
@@ -80,6 +81,53 @@ class _review_page extends State<Review_Page> {
     }
   }
 
+  List<Map<String, dynamic>> _reviews = [];
+
+  void _refreshReviews() async {
+    final data = await SQLHelper.getItems();
+    setState(() {
+      _reviews = data;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshReviews();
+    if (kDebugMode) {
+      print('.. number of items ${_reviews.length}');
+    }
+  }
+
+  void _deleteItem(int id) async {
+    final bool confirmed = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete a Review'),
+          content: const Text('Are you sure you want to delete this review?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await SQLHelper.deleteItem(id);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Successfully deleted a restaurant review')));
+      _refreshReviews();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,15 +146,16 @@ class _review_page extends State<Review_Page> {
                 margin: const EdgeInsets.fromLTRB(25, 25, 25, 25),
                 child: Column(
                   children: [
-                    Expanded(
-                      child:
-                      Image.file(File(widget.reviewImage),
+                    Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Image.file(
+                        File(widget.reviewImage),
                         width: 250,
                       ),
                     ),
                     ListTile(
                       title: Padding(
-                          padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                          padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
                           child: Center(
                             child: Text(
                               widget.reviewName,
@@ -163,13 +212,13 @@ class _review_page extends State<Review_Page> {
                             padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
                             child: Row(
                               children: [
-
-                                Expanded(child:
-                                Text(
-                                  widget.reviewReview,
-                                  style: const TextStyle(
-                                      fontSize: 18, color: Colors.black),
-                                ),),
+                                Expanded(
+                                  child: Text(
+                                    widget.reviewReview,
+                                    style: const TextStyle(
+                                        fontSize: 18, color: Colors.black),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
