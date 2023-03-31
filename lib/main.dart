@@ -47,6 +47,14 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  String path() {
+    setState(() {
+      imagePath;
+    });
+
+    return imagePath;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -59,14 +67,16 @@ class _MyHomePageState extends State<MyHomePage> {
   File? image;
   String imagePath = '';
 
-  Future pickImage() async {
+  Future<void> pickImage() async {
     try {
       final XFile? image =
           await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        imagePath = image.path;
-        print(imagePath);
-      }
+      setState(() {
+        if (image != null) {
+          imagePath = image.path;
+          print(imagePath);
+        }
+      });
 
       if (image == null) return;
 
@@ -164,7 +174,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
                     controller: _nameController,
@@ -261,18 +271,35 @@ class _MyHomePageState extends State<MyHomePage> {
                   const SizedBox(
                     height: 20,
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      pickImage();
-                    },
-                    child: const Text('Pick Image'),
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.black), // set the background color to red
+                          foregroundColor:
+                              MaterialStateProperty.all<Color>(Colors.white),
+                        ),
+                        onPressed: () {
+                          pickImage();
+                        },
+                        child: const Text('Pick Image'),
+                      ),
+                      Expanded(
+                        child: imagePath == null
+                            ? const Text('No image selected.')
+                            : Text(imagePath),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
-                  ElevatedButton(
+                  Center(
+                      child: ElevatedButton(
                     onPressed: () async {
                       if (_nameController.text == '' ||
                           _restaurantController.text == '' ||
                           _ratingController.text == '' ||
-                          _reviewController.text == ''||
+                          _reviewController.text == '' ||
                           imagePath == '') {
                         showDialog(
                           context: context,
@@ -313,7 +340,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           MaterialStateProperty.all<Color>(Colors.white),
                     ),
                     child: Text(id == null ? 'Create New' : 'Update'),
-                  )
+                  ))
                 ],
               ),
             ));
@@ -525,16 +552,19 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                           Center(
                             child: Padding(
-                                padding: const EdgeInsets.fromLTRB(80, 0, 80, 0),
+                                padding:
+                                    const EdgeInsets.fromLTRB(80, 0, 80, 0),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     ElevatedButton(
-                                      onPressed: () => _showForm(_reviews[index]['id']),
+                                      onPressed: () =>
+                                          _showForm(_reviews[index]['id']),
                                       style: ButtonStyle(
                                         backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.black),
+                                            MaterialStateProperty.all<Color>(
+                                                Colors.black),
                                       ),
                                       child: const Text(
                                           'Edit'), // the text displayed on the button
@@ -544,8 +574,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                           _deleteItem(_reviews[index]['id']),
                                       style: ButtonStyle(
                                         backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.black),
+                                            MaterialStateProperty.all<Color>(
+                                                Colors.black),
                                       ),
                                       child: const Text(
                                           'Delete'), // the text displayed on the button
@@ -555,7 +585,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ],
                       ),
-
                     ),
                     onPressed: () {
                       Navigator.push(
